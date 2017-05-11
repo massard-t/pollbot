@@ -1,0 +1,6 @@
+- name: a pretty cool album
+  nbr_songs: 3
+  songs:
+  - {banned: false, name: My first track}
+  - {banned: 0, name: This is the second song}
+  - {banned: 1, name: Kill me please}
