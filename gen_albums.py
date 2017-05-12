@@ -25,7 +25,6 @@ albums = [
         ]
 
 
-#print(albums)
 
 res = yaml.dump(albums)
 
@@ -33,8 +32,6 @@ with open(INFOS, 'w') as f:
     f.writelines(res)
 
 with open(INFOS, 'r') as f:
-    #content = [l.replace('\n', '') for l in f.readlines()]
     content = yaml.load(f)
 
 print(content[0])
-#print(res)
