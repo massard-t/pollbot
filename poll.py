@@ -1,21 +1,11 @@
 #!/usr/bin/env python3.5
-import requests
+import sys
 import argparse
+import subprocess
+from time import sleep
+import requests
 
-# this list needs to be updated everytime :(
-PROXIES = [
-    "104.198.212.210",
-    "35.187.25.201",
-    "130.211.55.208",
-    "130.211.117.26",
-    "104.199.113.158",
-    "35.187.31.4",
-    "35.185.208.24",
-    "35.185.117.175",
-    "35.185.209.35",
-    "35.185.59.98"
-]
-
+URL = "https://strawpoll.de/vote"
 HEADERS = {'x-requested-with': "XMLHttpRequest"}
 
 def check_args():
@@ -23,26 +13,52 @@ def check_args():
     parser.add_argument("-p", "--poll_id", required=True, type=str)
     parser.add_argument("-c", "--checkbox_id", required=True, type=str)
     parser.add_argument("-n", "--number_of_vote", required=True, type=int)
+    parser.add_argument("-d", "--container-name", required=True, type=str)
+    parser.add_argument('-s', '--sleep-time', default=10, type=int)
     args = parser.parse_args()
-    return args.poll_id, args.checkbox_id, args.number_of_vote
+    return (args.poll_id,
+        args.checkbox_id,
+        args.number_of_vote,
+        args.container_name,
+        args.sleep_time)
+
+
+def get_session():
+    session = requests.session()
+    session.proxies = {
+            "http": "socks5://127.0.0.1:9050",
+            "https": "socks5://127.0.0.1:9050"
+            }
+    return session
+
+
+def renew_ip(container_name):
+    p = subprocess.Popen(['docker', 'restart', container_name])
+    if p.wait():
+        print("Something went wrong while restarting the container.")
+        sys.exit(1)
+    print("Successfully restart {}".format(container_name))
 
 
 def main():
-    poll_id, checkbox_id, i = check_args()
-    url = "https://strawpoll.de/vote"
-    query_parameters = {"pid":poll_id,"oids":"check" + checkbox_id}
+    poll_id, checkbox_id, i, container_name, sleep_time = check_args()
+    query_parameters = {
+            "pid": poll_id, 
+            "oids": "check{}".format(checkbox_id)
+            }
 
-    #for x in range(0, i):
-        #proxy = "https://" + proxies[x] + ":80"
-        #print("sending request to " + url + "/" + poll_id + " from " + proxy)
-        #response = requests.request("POST", url, headers=headers, params=querystring, proxies={"https": proxies[x]})
-        #print(response.json())
-
-    for proxy in PROXIES:
-        curr_prox = "https://{}:80".format(proxy)
-        response = requests.post(url, headers=HEADERS, params=query_parameters,
-                proxies={"https":proxy})
+    session = get_session()
+    for proxy in range(0, i):
+        try:
+            response = session.post(URL,
+                    headers=HEADERS,
+                    params=query_parameters)
+        except Exception as e:
+            print("Undetermined error", e, file=sys.stderr)
         print(response.json())
+        print("Renewing ip...")
+        renew_ip(container_name)
+        sleep(sleep_time)
 
 if __name__ == "__main__":
     main()
