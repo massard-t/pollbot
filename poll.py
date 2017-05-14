@@ -30,7 +30,7 @@ def check_args():
 def main():
     poll_id, checkbox_id, i = check_args()
     url = "https://strawpoll.de/vote"
-    querystring = {"pid":poll_id,"oids":"check" + checkbox_id}
+    query_parameters = {"pid":poll_id,"oids":"check" + checkbox_id}
 
     #for x in range(0, i):
         #proxy = "https://" + proxies[x] + ":80"
